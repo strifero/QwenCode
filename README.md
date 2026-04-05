@@ -50,6 +50,8 @@ On macOS/Linux, make the scripts executable after cloning:
 chmod +x launch-shim.sh launch-client.sh
 ```
 
+**Windows note:** Synthetic Bash tool execution on Windows requires a working `bash` executable in PATH. Git Bash or WSL both satisfy this requirement. This is easy to miss — if Claude Code's bash operations fail on Windows, this is the first thing to check. See [Runtime Requirements](#runtime-requirements) below.
+
 ## Runtime Requirements
 
 - Node.js 18+
@@ -59,6 +61,8 @@ chmod +x launch-shim.sh launch-client.sh
 - On Windows, a working `bash` executable in PATH for synthetic Bash tool execution (Git Bash or WSL work)
 
 Recommended model: **`qwen2.5-coder:14b`** (default in the launchers). This performed better for constrained coding tasks than larger general-purpose models in testing.
+
+**GPU memory requirement:** `qwen2.5-coder:14b` requires approximately 9GB of VRAM to run fully on-GPU. Cards with 8GB of VRAM (such as the RTX 3070 8GB or RTX 4060 8GB) will not fit the model entirely in GPU memory and will fall back to partial CPU offload, which substantially reduces throughput. If you have an 8GB card, consider `qwen2.5-coder:7b` as an alternative, or accept CPU-offloaded performance. See the [Performance Expectations](#performance-expectations) table for context.
 
 ## Quick Start
 
@@ -123,6 +127,10 @@ Rough expectations with `qwen2.5-coder:14b`:
 | M2 Pro (16GB) | 2-5s | ~20 tok/s | Usable, patience helps |
 | CPU only | 10-30s | ~3 tok/s | Not recommended |
 
+The benchmarks above are from macOS and Linux systems. Windows performance with the same hardware is expected to be similar when the model runs fully on GPU, but has not been independently benchmarked. If you are evaluating QwenCode on Windows for long-running use, treat the figures above as directional rather than exact.
+
+Cards with less than 9GB of VRAM will not appear in this table because `qwen2.5-coder:14b` requires approximately 9GB of VRAM for full GPU inference. Running with CPU offload on such cards will produce throughput closer to the CPU-only row.
+
 The main latency you will feel is on the first response of each turn, because Claude Code's system prompt is large and the model must process it. Subsequent exchanges in the same session are faster.
 
 For comparison, native Claude Code against the Anthropic API typically responds in under 2 seconds with throughput limited only by network speed.
@@ -132,6 +140,8 @@ For comparison, native Claude Code against the Anthropic API typically responds 
 QwenCode is built and tested against **Claude Code CLI** (the `claude` command).
 
 **Tested with:** Claude Code versions available as of April 2026. The shim translates the Messages API format and tool-calling protocol, which has been stable across Claude Code releases.
+
+**Maintenance cadence:** QwenCode does not follow a fixed release schedule tied to Claude Code releases. The shim is updated reactively when Claude Code changes its internal API contract in ways that break the translation layer. The test suite is designed to catch these regressions. If you are evaluating QwenCode for long-term or production use, the practical risk is that a Claude Code update could require a shim update before things work again. Watching the [GitHub repository](https://github.com/strifero/QwenCode) for releases is the best way to stay current.
 
 **What could break:** If Anthropic changes Claude Code's internal API contract (new required fields, new tool formats, new streaming event types), the shim may need updates. The test suite is designed to catch these regressions.
 
@@ -293,10 +303,9 @@ This is not a full Anthropic API implementation. It supports the subset needed t
 - Multimodal content and provider-specific beta features are not supported
 - Claude Code's system prompt is large, so local latency is noticeable even with a fast GPU
 - Claude Code must be installed separately; QwenCode does not work without it
-
-## Changelog
-
-Project history and release notes are tracked via [GitHub releases](https://github.com/strifero/QwenCode/releases) and the [commit log](https://github.com/strifero/QwenCode/commits/main). Check there to see what has changed and when.
+- `qwen2.5-coder:14b` requires approximately 9GB of VRAM; 8GB cards will fall back to CPU offload
+- On Windows, synthetic Bash execution requires Git Bash or WSL in PATH
+- Shim updates are reactive to Claude Code changes rather than proactively versioned alongside Claude Code releases
 
 ## Support
 
