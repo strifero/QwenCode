@@ -294,6 +294,10 @@ This is not a full Anthropic API implementation. It supports the subset needed t
 - Claude Code's system prompt is large, so local latency is noticeable even with a fast GPU
 - Claude Code must be installed separately; QwenCode does not work without it
 
+## Changelog
+
+Project history and release notes are tracked via [GitHub releases](https://github.com/strifero/QwenCode/releases) and the [commit log](https://github.com/strifero/QwenCode/commits/main). Check there to see what has changed and when.
+
 ## Support
 
 - **Bug reports and feature requests:** [GitHub Issues](https://github.com/strifero/QwenCode/issues)
