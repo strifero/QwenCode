@@ -1,12 +1,15 @@
 {
   "name": "qwencode",
   "version": "0.1.0",
-  "private": true,
   "description": "Claude Code compatibility shim for Ollama-backed Qwen models.",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "start": "node src/server.mjs",
     "smoke": "node scripts/smoke-tests.mjs",
     "smoke:error": "node scripts/error-smoke-tests.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
