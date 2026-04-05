@@ -4,6 +4,30 @@ QwenCode is a local compatibility layer that lets [Claude Code](https://docs.ant
 
 [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview) is Anthropic's terminal-based AI coding agent. It reads your files, runs shell commands, and edits code through a structured tool-calling protocol. Normally it requires an Anthropic API key and sends your code to the cloud. QwenCode removes both of those requirements by routing the same interface through a local model.
 
+## Project Status
+
+QwenCode is **actively maintained**. The shim is updated reactively when Claude Code changes its internal API contract in ways that break the translation layer. It is not a completed, maintenance-only project — new Claude Code releases can require shim updates, and those updates are issued on a best-effort basis.
+
+**Current state:** Tested and working against Claude Code versions available as of April 2026.
+
+**Maintenance model:** There is no fixed release schedule. Updates are issued when Claude Code introduces breaking changes to its API contract or when reliability improvements are warranted. The test suite is designed to catch regressions introduced by upstream changes. Watch the [GitHub repository](https://github.com/strifero/QwenCode) for releases to stay current.
+
+**Long-term viability caveat:** QwenCode depends on Claude Code as an external dependency. If Anthropic significantly changes Claude Code's internal protocol, the shim will need to follow. There is no committed SLA for how quickly a breaking upstream release will be addressed. If you depend on QwenCode in a time-sensitive environment, pin your Claude Code version and upgrade only after confirming shim compatibility.
+
+## Changelog
+
+### April 2026
+- Initial public release
+- Tested against Claude Code versions available as of April 2026
+- Supports `POST /v1/messages` (streaming and non-streaming), `GET /v1/models`, `GET /health`
+- Synthetic fallback layer covering: create, overwrite, append, replace, insert, rename, delete, create directory, list directory, multi-file scaffold
+- Post-execution verification for all synthetic file operations
+- Full error-path test suite covering timeouts, malformed JSON, interrupted streams, rate limits, and large-context continuation
+- Windows support via PowerShell launchers (requires Git Bash or WSL for synthetic Bash execution)
+- Zero Node.js dependencies
+
+Releases are tagged on the [GitHub repository](https://github.com/strifero/QwenCode/releases). If you are evaluating whether QwenCode is current relative to a recent Claude Code release, the release tags are the authoritative reference.
+
 ## Why This Exists
 
 Claude Code expects Messages-style request and streaming semantics. Local models exposed through Ollama speak a different protocol and often fail to emit reliable native tool calls under Claude Code's tool-heavy prompt.
