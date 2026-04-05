@@ -17,6 +17,23 @@ QwenCode bridges that gap by:
 
 The result: you keep Claude Code's full interface (file editing, bash commands, tool orchestration) running entirely on your machine with no API key and no per-token cost.
 
+## How QwenCode Compares to Aider and Continue
+
+If you are evaluating local terminal coding agents, you have likely also looked at [Aider](https://aider.chat/) and [Continue](https://www.continue.dev/). Here is how they differ from QwenCode:
+
+**Aider** is its own standalone agent with its own interface, edit formats, and model abstraction layer. It supports many local and cloud models directly. If you want a fully self-contained agent that does not depend on Claude Code, Aider is a reasonable choice. QwenCode is not trying to replace Aider — it is a different bet: you get Claude Code's specific tool-calling loop and interface, running against a local model instead.
+
+**Continue** is primarily an IDE extension (VS Code, JetBrains) rather than a terminal agent. It integrates local models into your editor's chat and autocomplete. If you prefer staying inside your editor, Continue covers that use case. QwenCode is terminal-first and does not require an IDE.
+
+**QwenCode's specific tradeoff:** You are preserving Claude Code's exact agent loop — its tool orchestration, file-editing protocol, and bash execution flow — while replacing only the backend. This means:
+
+- You get Claude Code's structured tool use rather than a different agent's edit conventions
+- The synthetic fallback layer means more of Claude Code's workflows succeed even when the local model does not emit a native tool call
+- Post-execution verification means file operations are confirmed correct rather than silently assumed
+- There is no separate CLI to learn; if you already use Claude Code, the interface is identical
+
+The honest limitation: Claude Code is the dependency. QwenCode does not work without it, and local model tool-calling is still less reliable than Claude-hosted models. Aider's own model abstraction may be more forgiving of model-specific quirks if you plan to switch models frequently. QwenCode is optimized specifically for Qwen models running through Ollama under Claude Code's protocol.
+
 ## Platform Support
 
 QwenCode runs on **Windows**, **macOS**, and **Linux**. The shim itself is plain Node.js with zero dependencies.
@@ -275,6 +292,7 @@ This is not a full Anthropic API implementation. It supports the subset needed t
 - Broad open-ended editing is less trustworthy than constrained edits
 - Multimodal content and provider-specific beta features are not supported
 - Claude Code's system prompt is large, so local latency is noticeable even with a fast GPU
+- Claude Code must be installed separately; QwenCode does not work without it
 
 ## Support
 
