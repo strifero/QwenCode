@@ -1,0 +1,7 @@
+node_modules/
+.tmp-smoke/
+*.log
+shim-*-stdout.log
+shim-*-stderr.log
+mock-stdout.log
+mock-stderr.log
