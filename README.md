@@ -143,6 +143,8 @@ QwenCode is built and tested against **Claude Code CLI** (the `claude` command).
 
 **Maintenance cadence:** QwenCode does not follow a fixed release schedule tied to Claude Code releases. The shim is updated reactively when Claude Code changes its internal API contract in ways that break the translation layer. The test suite is designed to catch these regressions. If you are evaluating QwenCode for long-term or production use, the practical risk is that a Claude Code update could require a shim update before things work again. Watching the [GitHub repository](https://github.com/strifero/QwenCode) for releases is the best way to stay current.
 
+There is no committed SLA for how quickly a breaking Claude Code release will be addressed. Fixes are issued on a best-effort basis. If you depend on QwenCode in a time-sensitive environment, pin your Claude Code version and upgrade only after confirming shim compatibility.
+
 **What could break:** If Anthropic changes Claude Code's internal API contract (new required fields, new tool formats, new streaming event types), the shim may need updates. The test suite is designed to catch these regressions.
 
 **What is not supported:**
@@ -150,6 +152,25 @@ QwenCode is built and tested against **Claude Code CLI** (the `claude` command).
 - Provider-specific beta features
 - Extended thinking / streaming thinking blocks
 - MCP server passthrough from Claude Code
+
+## Context Window Handling
+
+Ollama defaults to a context window of 2048 tokens for most models, which is much smaller than what Claude Code expects for a typical session. Claude Code's system prompt alone is large, and a multi-turn session accumulates conversation history quickly. If you run QwenCode without adjusting this, Ollama will silently truncate the conversation once it exceeds 2048 tokens. The model will still respond, but it will have lost earlier context — edits may become inconsistent, the model may forget files it has already read, and tool-calling reliability will degrade without any obvious error.
+
+QwenCode exposes the `OLLAMA_NUM_CTX` environment variable to set the context window size passed to Ollama on every request. The launch scripts do not set a default value for this variable, so Ollama's own default applies unless you override it.
+
+**Recommended approach:** Set `OLLAMA_NUM_CTX` explicitly before starting the shim. A value of `8192` is a reasonable starting point for most Claude Code sessions. Higher values consume more VRAM; the right number depends on your available GPU memory and session length.
+
+```bash
+# macOS / Linux
+OLLAMA_NUM_CTX=8192 ./launch-shim.sh
+
+# Windows (PowerShell)
+$env:OLLAMA_NUM_CTX = "8192"
+.\launch-shim.ps1
+```
+
+If you notice response quality degrading mid-session — especially on tasks that reference earlier conversation turns — context truncation is the first thing to investigate. Enable `SHIM_LOG=debug` to see what context size is being sent to Ollama on each request.
 
 ## How Synthetic Fallback Works
 
@@ -254,7 +275,7 @@ QwenCode is strongest when the request is explicit and operationally narrow.
 | `OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | Ollama endpoint |
 | `OLLAMA_MODEL` | `qwen2.5-coder:14b` | Model name |
 | `OLLAMA_AUTH_TOKEN` | | Optional bearer token for Ollama gateways |
-| `OLLAMA_NUM_CTX` | | Context window override |
+| `OLLAMA_NUM_CTX` | | Context window override — strongly recommended; see [Context Window Handling](#context-window-handling) |
 | `SHIM_MAX_TOOLS` | `8` | Max tools forwarded to the model |
 | `SHIM_API_KEY` | | Optional shared secret |
 | `SHIM_USE_REQUESTED_MODEL` | | Honor incoming model field instead of forcing `OLLAMA_MODEL` |
@@ -305,7 +326,8 @@ This is not a full Anthropic API implementation. It supports the subset needed t
 - Claude Code must be installed separately; QwenCode does not work without it
 - `qwen2.5-coder:14b` requires approximately 9GB of VRAM; 8GB cards will fall back to CPU offload
 - On Windows, synthetic Bash execution requires Git Bash or WSL in PATH
-- Shim updates are reactive to Claude Code changes rather than proactively versioned alongside Claude Code releases
+- Ollama defaults to a 2048-token context window; long sessions will silently truncate without setting `OLLAMA_NUM_CTX`
+- Shim updates are reactive to Claude Code changes rather than proactively versioned alongside Claude Code releases; there is no committed SLA for how quickly a breaking Claude Code release will be addressed
 
 ## Support
 
